@@ -90,19 +90,19 @@ body {
 }
 
 .navbar.scrolled {
-    background-color: #b30000 !important;
+    background-color: #29bdc5b6 !important;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Logo */
 .navigation-section .navbar-brand img {
     margin-left: 15px;
-    height: 36px;
+    height: 60px;
 }
 
 /* Hover Effect */
 .navigation-section .navbar-nav .nav-item a:hover {
-    color: blue !important;
+    color: rgb(25, 148, 70) !important;
 }
 
 /* Styling Text di Navbar */
@@ -110,7 +110,10 @@ body {
     font-size: 14px;
     font-weight: normal;
     color: white !important;
+    font-family: 'Lucida Sans Unicode';
 }
+
+
 
 /* Tombol Register */
 .btn-register {
@@ -123,7 +126,7 @@ body {
 }
 
 .btn-register:hover {
-    background-color: #b30000;
+    background-color: #1cbf3779;
     color: white;
 }
 
@@ -417,7 +420,7 @@ body {
 
 .testi-box {
     max-width: 619px;
-    background-color: #94918e;
+    background-color: #29bdc54e;
     box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.15);
     border-radius: 8px;
 }

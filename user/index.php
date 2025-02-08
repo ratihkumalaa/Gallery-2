@@ -1,29 +1,33 @@
-<!-- tulis script pemanggilan database koneksi dimulai dari disini -->
 <?php
+session_start(); // Mulai session
+include('../koneksi/koneksi.php'); // Panggil koneksi database
+
+// Proses login dan logout
+$isLoggedIn = isset($_SESSION['username']);
+$username = $isLoggedIn ? $_SESSION['username'] : 'Register';
+
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_destroy();
+    header("Location: index.php");
+    exit();
+}
+
+// Proses penyimpanan komentar
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Memeriksa apakah data yang dikirim tidak kosong
     if (!empty($_POST['foto_id']) && !empty($_POST['user_id']) && !empty($_POST['comment'])) {
-        // Ambil dan bersihkan data dari form
         $foto_id = trim($_POST['foto_id']);
         $user_id = trim($_POST['user_id']);
         $comment = htmlspecialchars(trim($_POST['comment'])); // Mencegah XSS
         $tanggal_komentar = date('Y-m-d H:i:s');
 
-        // Koneksi ke database
-        include('../koneksi/koneksi.php'); 
-
-        // Query untuk menyimpan komentar
         $query = "INSERT INTO gallery_komentarfoto (FotoId, UserId, IsiKomentar, TanggalKomentar) VALUES (?, ?, ?, ?)";
-
+        
         if ($stmt = mysqli_prepare($conn, $query)) {
-            // Bind parameter dan eksekusi query
             mysqli_stmt_bind_param($stmt, 'iiss', $foto_id, $user_id, $comment, $tanggal_komentar);
 
             if (mysqli_stmt_execute($stmt)) {
-                mysqli_stmt_close($stmt); // Tutup statement setelah dieksekusi
-                mysqli_close($conn); // Tutup koneksi database
-                
-                // Redirect ke halaman utama
+                mysqli_stmt_close($stmt);
+                mysqli_close($conn);
                 header('Location: index.php');
                 exit();
             } else {
@@ -37,8 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
-<!-- tulis script pemanggilan database koneksi berakhir dari disini -->
 
 
 <!DOCTYPE html>
@@ -54,14 +56,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css"
         integrity="sha512-tS3S5qG0BlhnQROyJXvNjeEM4UpMXHrQfTGmbQ1gKmelCxlSEBUaxhRBj/EFTzpbP4RVSrpEikbmdJobCvhE3g=="
         crossorigin="anonymous" />
-     
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat+Subrayada:wght@400;700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat+Subrayada:wght@400;700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+    <style>
+        .dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0;
+        }
+
+    </style>
+
 </head>
 
 <body>
-<div class="container-fluid">
+    <div class="container-fluid">
         <section class="header-section">
             <div class="container">
                 <!-- Navbar -->
@@ -69,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <nav class="navbar navbar-expand-lg fixed-top">
                         <div class="container p-0">
                             <a class="navbar-brand ms-2" href="#">
-                                <img src="img/logo.png" alt="Logo">
+                                <img src="../img/logoanjai.png" alt="Logo">
                             </a>
                             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
                                 <img src="img/Toggler.png" alt="">
@@ -79,10 +88,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <li class="nav-item ms-4"><a class="nav-link" href="#">Halaman Utama</a></li>
                                     <li class="nav-item ms-4"><a class="nav-link" href="#why-us-section">Galeri</a></li>
                                     <li class="nav-item ms-4"><a class="nav-link" href="#testimony-section">Testimon</a></li>
-                                    <li class="nav-item ms-4"><a class="nav-link" href="tambah-data.php">Tambah Gambar</a></li>
-                                    <li class="nav-item ms-4">
-                                        <a class="nav-link p-0" href="../register.php"><button class="btn-register">Register</button></a>
-                                    </li>
+                                    
+                                    <!-- Tombol Tambah Data -->
+                                    <?php if ($isLoggedIn): ?>
+                                        <li class="nav-item ms-4"><a class="nav-link" href="tambah-data.php">Tambah Gambar</a></li>
+                                    <?php endif; ?>
+
+                                    <!-- Nama User atau Register -->
+                                    <li class="nav-item dropdown ms-4">
+                                        <?php if ($isLoggedIn): ?>
+                                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <?= htmlspecialchars($username); ?>
+                                            </a>
+                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown"> 
+                                                <li><a class="dropdown-item text-danger" href="?action=logout">Logout</a></li>
+                                            </ul>
+                                        <?php else: ?>
+                                            <a class="nav-link" href="../register.php">Register</a>
+                                        <?php endif; ?>
+                                    </li> 
                                 </ul>
                             </div>
                         </div>
@@ -92,16 +116,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- Hero Section -->
                 <section class="hero-section">
                     <p class="judul">Langit Beserta Sunsetnya</p>
-                    <p>Di setiap sudut alam, terdapat keajaiban yang tak terucapkan, hanya bisa dirasakan dengan hati yang terbuka.</p>
+                    <p>Pegunungan adalah pelukan alam yang menenangkan, di mana setiap langkah membawa kita lebih dekat kepada kedamaian yang sejati.</p>
                     <button class="btn-rent-now">Kunjungi <i class="fas fa-arrow-right"></i></button>
                 </section>
             </div>
         </section>
     </div>
-
-
-    <!-- section kategori -->
-
+     
+    <!-- section kategori --> 
     <div class="container text-center mt-5 mb-5" id="category">
         <div class="category mb-4 ">
             <h2>Kategori</h2>
@@ -215,8 +237,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ?>
                         <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
                             <div class="card">                            
-                            <!-- tambahkan pemanggilan menggunkan id untuk mengambil data detail -->
-                                <a href="detail.php?FotoID=' . $row['FotoID'] . '">
+                                <!-- Perbaikan pemanggilan ID untuk detail -->
+                                <a href="detail.php?FotoID=<?php echo $row['FotoID']; ?>">
                                     <img src="../img/produk/<?php echo $image_url; ?>" class="icon-why-us rounded-top" style="width:270px" alt="Gambar Gallery">
                                 </a>
                                 <div class="card-body text-center">
@@ -228,6 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                         </div>
+
                         <?php
                     }
                 } else {
@@ -237,7 +260,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <!-- Button untuk masuk ke halaman detail -->
                 <div class="col-12 text-center mt-4">
-                    <a href="daftar-produk.php" class="btn btn-secondary">
+                    <a  style="
+                            background-color: #29bdc5b6"
+                    href="daftar-produk.php" class="btn btn-secondary"  >
                         Lihat Semua Produk
                     </a>
                 </div>
@@ -246,15 +271,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </section>
     </div>
-    <!-- section produk end -->
-
-
+    <!-- section produk end --> 
 
     <!-- Tulis disini untuk section Testimoni start -->
     <div class="container-fluid">
         <section class="testimony-section" id="testimony-section">
             <div class="opening-text-testimony text-center">
-                <h2>Testimonia</h2>
+                <h2>Testimonial</h2>
                 <p>Berbagai review positif dari para pelanggan kami</p>
             </div>
 
@@ -343,9 +366,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- Address Section -->
                 <div class="col-lg-3 col-md-6 mb-4">
                     <div class="address">
-                        <h5>Jalan Suroyo No. 161 Mayangan Kota Probolonggo 672000</h5>
+                        <h5>Jalan Lebak No. 272 Kota Lebak 567000</h5>
                         <h5>nurul@gmail.com</h5>
-                        <h5>085-345-134-978</h5>
+                        <h5>097-565-898-123</h5>
                     </div>
                 </div>
 
@@ -366,11 +389,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="navigation">
                         <h5>Connect with Us</h5>
                         <ul class="list-unstyled d-flex">
-                            <li class="me-3"><a href="#"><img src="img/icon_facebook.png" alt="Facebook"></a></li>
-                            <li class="me-3"><a href="#"><img src="img/icon_instagram.png" alt="Instagram"></a></li>
-                            <li class="me-3"><a href="#"><img src="img/icon_twitter.png" alt="Twitter"></a></li>
-                            <li class="me-3"><a href="#"><img src="img/icon_mail.png" alt="Email"></a></li>
-                            <li class="me-3"><a href="#"><img src="img/icon_twitch.png" alt="Twitch"></a></li>
+                            <li class="me-3"><a href="#"><img src="../img/icon_facebook.png" alt="Facebook"></a></li>
+                            <li class="me-3"><a href="#"><img src="../img/icon_instagram.png" alt="Instagram"></a></li>
+                            <li class="me-3"><a href="#"><img src="../img/icon_twitter.png" alt="Twitter"></a></li>
+                            <li class="me-3"><a href="#"><img src="../img/icon_mail.png" alt="Email"></a></li>
+                            <li class="me-3"><a href="#"><img src="../img/icon_twitch.png" alt="Twitch"></a></li>
                         </ul>
                     </div>
                 </div>
